@@ -1,0 +1,156 @@
+openapi: 3.0.3
+info:
+  title: IBM Express Microservice API
+  description: |
+    A dual-API microservice exposing user data via REST and GraphQL endpoints.
+    
+    ## Domain Restriction
+    
+    **Important:** This API only accepts traffic from the following domains:
+    - `example.com` (and subdomains)
+    - `localhost:3000` (for development/testing)
+    
+    All requests from other domains will receive a `403 Forbidden` response.
+    
+    ## GraphQL Endpoint
+    
+    In addition to the REST API documented here, a GraphQL endpoint is available at `/graphql`.
+    
+    Example GraphQL query:
+    ```graphql
+    query {
+      user(id: "user1") {
+        id
+        name
+      }
+    }
+    ```
+  version: 1.0.0
+  contact:
+    name: API Support
+servers:
+  - url: http://localhost:3000
+    description: Development server
+  - url: https://example.com
+    description: Production server
+
+paths:
+  /users/{id}:
+    get:
+      summary: Get a user by ID
+      description: Retrieves a single user by their unique identifier.
+      operationId: getUserById
+      tags:
+        - Users
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier of the user (CUID format)
+          schema:
+            type: string
+          example: user1
+      responses:
+        '200':
+          description: User found successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+              example:
+                id: user1
+                name: John Doe
+        '400':
+          description: Invalid user ID provided
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: ApiError
+                message: Invalid user ID provided
+        '403':
+          description: Access denied - domain restriction
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Forbidden
+                message: Access denied. This API only accepts traffic from example.com or localhost:3000.
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Not Found
+                message: User with ID 'unknown' not found
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /health:
+    get:
+      summary: Health check endpoint
+      description: Returns the current health status of the service.
+      operationId: healthCheck
+      tags:
+        - System
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: '2026-01-05T23:20:00.000Z'
+
+components:
+  schemas:
+    User:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the user (CUID format)
+          example: user1
+        name:
+          type: string
+          description: The user's display name
+          example: John Doe
+
+    Error:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error type or category
+          example: Not Found
+        message:
+          type: string
+          description: Detailed error message
+          example: User with ID 'unknown' not found
+
+tags:
+  - name: Users
+    description: User management endpoints
+  - name: System
+    description: System health and status endpoints
