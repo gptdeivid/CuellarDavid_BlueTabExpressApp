@@ -187,8 +187,4 @@ swagger.yaml                  # OpenAPI spec
 
 ---
 
-## Documentación
 
-- **Swagger UI**: http://localhost:3000/api-docs
-- **GraphQL Playground**: http://localhost:3000/graphql
-- **Guías adicionales**: `Documentation for David/`
